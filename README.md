@@ -28,6 +28,8 @@ Each ship counts once, based on its first observed flag change.
 
 ## Findings
 
+![Days to first flag change](days_to_flag_change.png)
+
 The dataset contains 663 sanctioned vessels. Twenty stopped transmitting around their designation date and could not be followed afterwards, leaving 643 observable vessels.
 
 404 of 643 (62.8%) appeared under a different flag after designation
