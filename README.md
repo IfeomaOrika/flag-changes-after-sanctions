@@ -59,38 +59,38 @@ The vessel had already stopped being registry-confirmed before designation. Ever
 ## Running it
 
 Requires Python 3 and a Global Fishing Watch API token.
+
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install requests python-dotenv
 echo "GFW_TOKEN=your_token_here" > .env
+```
 
 Download the UK Sanctions List CSV from gov.uk and save it as uk_sanctions.csv in the project root.
 
 Then run:
+
+```bash
 python3 query_vessels.py
 python3 save_results.py
 python3 split_no_change.py
+```
 
 query_vessels.py queries GFW for each sanctioned vessel. It makes one API call per vessel with a half-second pause and takes roughly six minutes.
 
 ## Files
 
-File
-Purpose
-query_vessels.py
-Pulls sanctioned vessels and queries GFW for each
-save_results.py
-Calculates days to the first flag change and writes flag_hops.csv
-split_no_change.py
-Separates vessels that kept their flag from those that went silent
-parse_vessel.py
-Prints the full identity history for a single IMO
-METHODOLOGY.md
-Documents the decisions, definitions and limits behind the analysis
-results.json
-Raw GFW responses for all 663 vessels
-flag_hops.csv
-The 404 observed flag changes
+| File | Purpose |
+|---|---|
+| `query_vessels.py` | Pulls sanctioned vessels and queries GFW for each |
+| `save_results.py` | Calculates days to the first flag change and writes flag_hops.csv |
+| `split_no_change.py` | Separates vessels that kept their flag from those that went silent |
+| `parse_vessel.py` | Prints the full identity history for a single IMO |
+| `explore_sdn.py` | Inspects the UK Sanctions List structure and extracts vessel entries |
+| `METHODOLOGY.md` | Documents the decisions, definitions and limits behind the analysis |
+| `results.json` | Raw GFW responses for all 663 vessels |
+| `flag_hops.csv` | The 404 observed flag changes |
 
 ## Limits
 
