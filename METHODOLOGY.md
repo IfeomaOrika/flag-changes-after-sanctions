@@ -1,114 +1,92 @@
 # Methodology
 
 ## 1. Research design
-This project asks whether ships sanctioned by the United Kingdom change their flag afterwards and how quickly those changes become visible.
 
-I measured the time between each ship’s designation date and the first time Global Fishing Watch (GFW) recorded the same ship under a different flag. I identified ships by their IMO number, which stays with the vessel even when its name, owner, manager, or flag changes.
+This project examines the flag histories of 663 vessels listed under the UK Sanctions List. Using data from Global Fishing Watch (GFW), it investigates whether these vessels appeared under different flags in their Automatic Identification System (AIS) identity records after being sanctioned. It also examines instances where different vessel identities appeared to exist at the same time.
 
-Each ship contributes one observation: the time between designation and its first observed flag change, where a change occurred.
+The analysis compares two releases of GFW's Global Vessel Identity dataset, v4.0 and v5.0, to determine whether differences between the datasets affect the identification and classification of these cases.
 
-The analysis is descriptive. It shows what happened to the ships after designation and measures how quickly those changes appeared in the data. It does not establish why an individual ship changed its flag.
+The project focuses on changes in AIS-reported identity. Such changes are not, on their own, proof that a vessel's legal registration or nationality changed.
 
-## 2. What counts as a flag change
+## 2. Data sources
 
-I counted a flag change when GFW recorded the same IMO number under a different reported flag after the ship's designation date.
+The analysis uses the UK Sanctions List, dated 28 August 2026, and two releases of the GFW Global Vessel Identity dataset: v4.0 and v5.0.
 
-The measure comes from GFW's vessel identity data and reflects the flag associated with the vessel in that data. It does not establish the date of legal registration, a change in ownership or management, or the ship's physical location at the time.
+Both GFW versions were queried using the same 663 IMO numbers. All 663 queries were successful in each version. The v4.0 data were retrieved on 11 November 2026 between 18:40:56 and 18:55:11 UTC, while v5.0 was retrieved on the same date between 21:24:38 and 21:50:14 UTC.
 
-For each ship, I recorded the flag before designation, the first different flag after designation, the date GFW first recorded that flag, the number of days between designation and the recorded change, and GFW's source classification for the new flag.
+## 3. Preparation of the sanctions data
 
-## 3. Why I recorded the first change
-I recorded only the first flag change after designation for each ship.
-Wisdom's Daughter, for example, changed flag eight times after February 2025. It counts once in this analysis.
+The UK Sanctions List contained 888 entries relating to 663 unique IMO numbers. Since the IMO number provides a consistent identifier for matching vessels across the different datasets, it was used as the primary identifier for the analysis.
 
-Counting every change would give ships that changed flags repeatedly more weight in the results. I wanted each ship to contribute equally and wanted the measure to answer one simple question: how quickly did a sanctioned ship first appear under a different flag?
+Duplicate entries were consolidated to produce one record per IMO number, retaining the relevant designation details and flag information.
 
-Later changes can also have different causes. They may follow port refusals, insurance problems, further sanctions, or other pressure that developed after the original designation. The first observed change is therefore the clearest point for measuring the ship's initial response.
+## 4. Establishing the baseline flag
 
-## 4. IMO numbers
+The flag recorded for each vessel at the date of its designation was used as the baseline for identifying subsequent flag changes. The baseline was established using the following rules:
 
-The International Maritime Organization (IMO) is the United Nations agency responsible for international shipping regulation. It assigns ships permanent seven-digit IMO numbers, which remain with the vessel throughout its life.
-The number stays the same when a ship is sold, renamed, or reflagged. That makes it possible to follow the same vessel across different names and flags.
-I used the IMO number to match the UK sanctions records with GFW identity histories and to make sure I was following the same vessel over time.
+- A single distinct flag recorded across the designation date was adopted as the baseline.
+- Where multiple distinct flags covered the designation date, the baseline was classified as ambiguous.
+- Where no record covered the designation date, the most recent valid record before that date was used as a provisional baseline.
+- Where no earlier record was available, the vessel was classified as having insufficient baseline information.
 
-## 5. Study population
+## 5. Identifying post-designation flag changes
 
-The UK sanctions list contains individuals, companies, and other entities alongside designated vessels. I kept entries with a valid seven-digit IMO number because the research requires a reliable way to follow a vessel before and after designation.
+A candidate flag change was identified where a valid AIS identity record beginning strictly after the designation date reported a flag different from the vessel's baseline flag. Where multiple qualifying records existed, the earliest was selected as the candidate.
 
-I deduplicated repeated entries and aliases using the IMO number.
+The time between designation and the start of the candidate record was also calculated. Vessels without a qualifying record were classified as having no different post-designation flag observed.
 
-This produced 663 unique sanctioned vessels.
+## 6. Identifying competing AIS identities
 
-I excluded entries without a valid IMO number because a vessel name alone is not reliable enough for this analysis. Ships can change names, and different vessels can have the same or similar names.
+Each candidate was checked for overlap with other AIS identity records reporting a different flag or SSVID. An overlap was recorded only where the identity intervals shared a positive duration; records that met only at an endpoint were excluded.
 
-## 6. Designation date
+Where an overlap existed, the candidate was classified as having a competing AIS identity. This indicates conflicting identity information in the dataset but does not establish the cause of the conflict.
 
-I used the date on which the UK government officially designated each vessel as the starting point for the analysis. The date came from the Date Designated field in the UK Sanctions List.
+## 7. Registry correlation
 
-This date creates the boundary between the pre-designation and post-designation periods.
+Candidate AIS identities were compared with GFW registry identity records to determine whether corresponding registry evidence existed.
 
-For example, a vessel designated on 24 February 2025 has observations before that date treated as pre-designation. Changes recorded after that date are potential post-designation responses.
+A registry record was considered a match only where it shared the candidate's IMO number, SSVID and flag, and its identity period overlapped the candidate's AIS record. Registry-owner records were excluded, and the mere presence of registry information was not treated as confirmation of a candidate flag.
 
-## 7. Days to first flag change
+## 8. Classification framework
 
-I calculated days-to-hop as the number of calendar days between the designation date and the first date GFW recorded the same IMO number under a different flag.
+Each vessel was assigned one of seven classifications based on its baseline, candidate flag, competing AIS identities and registry evidence:
 
-The measure tells me when the change became visible in GFW data. It does not give me the exact date on which the legal registration was completed.
+- **AIS-only candidate, no detected overlapping identity conflict:** A different post-designation flag was identified, but no competing identity or exact registry match was found.
+- **Registry-correlated candidate, no competing AIS identity:** The candidate had an exact registry match, with no competing identity detected.
+- **Candidate registry-correlated but competing AIS identity present:** The candidate had an exact registry match, but another identity overlapped its record.
+- **Conflicting AIS identity, no exact candidate registry match:** A competing identity was detected, but no exact registry match for the candidate was found.
+- **No different post-designation flag observed:** No qualifying change from the baseline was identified.
+- **Ambiguous baseline:** Multiple distinct flags covered the designation date.
+- **Insufficient baseline:** No valid record was available to establish a baseline.
 
-This matters because the legal process behind a flag transfer can begin before the change appears in AIS or GFW. A ship may also spend time without transmitting after changing its flag, which would make the observed interval longer than the actual interval.
+## 9. Comparing GFW versions
 
-The fastest changes in the dataset appear one to three days after designation. A complete flag transfer would normally involve steps such as deregistration, an application to the new flag state, documentation, and the issue or transfer of certificates. 
+The same sanctions lookup and classification rules were applied independently to v4.0 and v5.0. The resulting vessel-level records were then compared to identify changes in classification, candidate flag, SSVID and candidate record date.
 
-A change appearing one day after designation therefore strongly suggests that the new flag arrangement was already underway or had already been completed when the designation became public.
+This comparison showed whether v5.0 introduced new candidates, identified different candidates for previously analysed vessels or no longer supported candidates found in v4.0.
 
-There is another possibility: GFW's recorded date may not match the date of the underlying legal event. That can happen with individual records, which is why I treat the GFW date as the observation date rather than assuming it is the legal registration date.
+## 10. Limitations
 
-## 8. Self-reported and registry-confirmed flags
+AIS identity records do not establish a vessel's legal registration or nationality. A different AIS-reported flag is therefore treated as a candidate change, not proof of legal re-registration.
 
-GFW assigns a source to each vessel identity record.
+Similarly, competing AIS identities indicate inconsistencies in the available records but do not establish their cause or demonstrate deliberate identity manipulation.
 
-Where GFW identifies a flag through a registry record, I classify the flag as registry-confirmed. Where the flag appears in the vessel's reported identity without corresponding registry confirmation in GFW, I classify it as self-reported.
+The absence of a candidate does not prove that a vessel never changed flags. It means that no qualifying change was identified in the available data. In addition, differences between v4.0 and v5.0 may reflect additions or revisions to historical identity records rather than new real-world events.
 
-There were 404 post-designation flag changes in this dataset. 37 were registry-confirmed, and 367 were self-reported only. That is 90.8% of observed flag changes for which GFW holds no registry confirmation of the new flag.
+## 11. Results
 
-For those records, I cannot establish from GFW alone that the vessel obtained legal registration from the new flag state. There are at least two possible explanations. The registry may hold a record that GFW cannot access or match, or the vessel may have reported a flag that it had not been granted.
+The final classifications for the two GFW releases were as follows:
 
-I therefore keep self-reported and registry-confirmed flags separate throughout the analysis.
+| Classification | GFW v4.0 | GFW v5.0 |
+|---|---:|---:|
+| AIS-only candidate, no detected overlapping identity conflict | 220 | 223 |
+| Candidate registry-correlated but competing AIS identity present | 5 | 5 |
+| Conflicting AIS identity, no exact candidate registry match | 153 | 167 |
+| Registry-correlated candidate, no competing AIS identity | 13 | 13 |
+| No different post-designation flag observed | 256 | 239 |
+| Ambiguous baseline | 15 | 15 |
+| Insufficient baseline | 1 | 1 |
+| **Total vessels** | **663** | **663** |
+| **Total candidate classifications** | **391** | **408** |
 
-A self-reported flag raises a separate question from the speed of the change: whether the vessel held a valid flag at all. Establishing that for any individual vessel would require checking the relevant registry directly or obtaining other evidence of registration. At this scale, though, the proportion is a finding in its own right. Article 91 of UNCLOS requires a genuine link between a vessel and its flag state. For 367 of the 404 changes observed here, the publicly available data does not establish that any link exists, genuine or otherwise.
-
-## 9. Ships with no observed flag change
-
-Of the 663 ships, 404 showed a flag change after designation. The remaining 259 required a closer look.
-239 continued to appear in the data after designation under the same flag. 
-
-Most of these vessels were North Korean-flagged. Their lack of reflagging is significant because it shows that flag hopping depends on having another registry willing or able to take the vessel.
-
-For vessels operating under flags with few or no viable alternatives, sanctions may leave them with little opportunity to change nationality. The absence of a flag change therefore does not necessarily mean that a vessel faced no pressure or had no reason to change. In some cases, the option may simply have been unavailable.
-
-The other 20 vessels stopped appearing around the time of designation. Because their subsequent activity could not be observed, I cannot determine whether they changed flags, stopped transmitting, were scrapped, were seized, or left the observable dataset for another reason.
-
-I therefore treat these 20 vessels as unresolved rather than as vessels that kept their flags.
-
-This leaves 643 observable vessels for the main comparison. Of those, 404 showed a post-designation flag change.
-404 ÷ 643 = 62.8%.
-
-I report the 20 unresolved vessels separately rather than treating them as evidence of either a flag change or no change.
-
-## 10. What the data cannot show
-
-
-The data shows what happened to the vessels after designation. It cannot, by itself, tell me why a particular vessel changed its flag.
-
-A post-sanction flag change could be connected to sanctions evasion. It could also follow deregistration by the original flag state, a sale of the vessel, a change in commercial arrangements, or a routine registration event that happened to fall after designation.
-
-AIS and vessel identity data cannot distinguish between these explanations.
-Establishing intent for an individual vessel would require evidence from outside this dataset, such as ownership records, registry applications, registration dates, sale documents, insurance records or communications between vessel owners and registries.
-The dataset does show a clear pattern: 404 vessels recorded a post-designation flag change, 107 did so within 30 days, 273 within 90 days, and the median time to the first observed change was 55 days.
-
-That pattern is consistent with a systematic response to sanctions designation.
-
-There are two further limitations. First, the dataset covers UK sanctions only. Adding US and EU sanctions could produce a larger sample and could change the results. Second, GFW relies heavily on AIS-derived information. Ships can stop transmitting or manipulate their broadcasts, and GFW notes that its data can contain errors.
-
-For that reason, I treat individual records with caution. The main finding rests on the pattern across the full dataset rather than on any single vessel.
-
+GFW v5.0 produced 408 candidate classifications, compared with 391 in v4.0. A total of 24 vessels changed classification between the two releases. The comparison demonstrates that the choice of dataset version affects the identification and classification of candidate post-designation flag changes.

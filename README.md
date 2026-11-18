@@ -1,118 +1,129 @@
-# Flag Changes After Sanctions Designation
+# Flag Hopping After Sanctions
 
-Measures how quickly vessels sanctioned by the United Kingdom appear under a different flag, using public sanctions records and Global Fishing Watch vessel identity data.
+An examination of post-designation flag changes among 663 vessels on the UK Sanctions List, using two releases of Global Fishing Watch's Global Vessel Identity dataset (v4.0 and v5.0).
 
 ## The Question
 
-Article 91 of UNCLOS requires a genuine link between a ship and the state whose flag it flies. The Convention does not define the requirement in detail or provide a clear mechanism for enforcing it.
-This project asks what that looks like in practice.
+Article 91 of the United Nations Convention on the Law of the Sea (UNCLOS) requires a genuine link between a ship and the state whose flag it flies. Yet the Convention does not define that link in detail or establish a clear mechanism for verifying it.
 
-When a ship is sanctioned, does it change flag? And how quickly does the change appear?
+This project examines what happens to vessels after they are designated under the UK Sanctions List. Do they subsequently appear under different flags in their AIS identity records? How soon do those changes appear? And what happens when different vessel identities are reported over overlapping periods?
+
+The project also examines whether these findings change when the same vessels are analysed using different releases of Global Fishing Watch's vessel identity dataset.
 
 ## What it does
 
-I took the UK Sanctions List and kept every entry with a valid seven-digit IMO number. I then queried Global Fishing Watch (GFW) for each vessel's identity history.
+The analysis begins with the UK Sanctions List and identifies 663 unique vessels using their IMO numbers. Each IMO number is then used to retrieve the vessel's identity history from Global Fishing Watch (GFW).
 
-For each ship, I recorded:
+For each vessel, the analysis establishes a baseline flag at the date of designation. It then identifies the earliest valid AIS identity record beginning strictly after that date and reporting a different flag.
 
-the flag before designation
+Each candidate is checked against other AIS identity records for overlapping periods in which a different flag or SSVID is reported. Only overlaps with a positive duration are counted.
 
-the first different flag observed after designation
+Each candidate is also compared with GFW registry identity records. A match requires the same IMO number, SSVID and flag, together with an overlapping identity period. Registry-owner records are excluded.
 
-the number of days between designation and that change
+The same analysis is performed independently on GFW's Global Vessel Identity dataset v4.0 and v5.0. Comparing the results makes it possible to identify changes in the flags reported, the timing of candidate changes and the classification of individual vessels.
 
-whether GFW has registry confirmation for the new flag
-
-
-Each ship counts once, based on its first observed flag change.
+The IMO number remains the primary identifier throughout the analysis, allowing vessel histories to be compared even where names, flags or other identity details differ.
 
 ## Findings
 
-The dataset contains 663 sanctioned vessels. Twenty stopped transmitting around their designation date and could not be followed afterwards, leaving 643 observable vessels.
+The analysis identified 391 candidate post-designation flag changes in GFW v4.0 and 408 in v5.0. The difference reflects changes in the identity records available across the two releases, rather than necessarily indicating new real-world flag changes.
 
-404 of 643 (62.8%) appeared under a different flag after designation
+The classifications were as follows:
 
-107 changed within 30 days
+| Classification | GFW v4.0 | GFW v5.0 |
+|---|---:|---:|
+| AIS-only candidate, no detected overlapping identity conflict | 220 | 223 |
+| Registry-correlated candidate, no competing AIS identity | 13 | 13 |
+| Candidate registry-correlated but competing AIS identity present | 5 | 5 |
+| Conflicting AIS identity, no exact candidate registry match | 153 | 167 |
+| No different post-designation flag observed | 256 | 239 |
+| Ambiguous baseline | 15 | 15 |
+| Insufficient baseline | 1 | 1 |
+| **Total vessels** | **663** | **663** |
+| **Candidate classifications** | **391** | **408** |
 
-273 changed within 90 days
+A total of 24 vessels changed classification between the two releases. Eighteen vessels moved from having no observed different post-designation flag in v4.0 to having a candidate in v5.0. Five candidates previously classified as AIS-only were reclassified because v5.0 contained an overlapping competing identity. One candidate identified in v4.0 was no longer identified in v5.0.
 
-Median time to the first observed change: 55 days
+The difference is not limited to the number of candidates. The number of vessels classified as having conflicting AIS identities without an exact registry match increased from 153 in v4.0 to 167 in v5.0. This illustrates why the version of an identity dataset matters: changes to historical records can affect not only whether a candidate is identified, but also how consistent its reported identity appears.
 
-367 of the 404 (90.8%) new flags were self-reported only, with no registry confirmation in GFW
-
-The fastest observed changes appeared one to three days after designation, shorter than the normal process for completing a flag transfer
-
-New flags concentrated in a small group of registries, including Gambia, Sierra Leone, Comoros, Cameroon, Djibouti, Barbados and Equatorial Guinea
-
-Taken together, the speed of the changes and the lack of registry confirmation point to the same conclusion: flag-state registration operates with very little external verification at exactly the point where verification would matter most.
-
-The 239 vessels with no observed flag change were mostly North Korean flagged. Their lack of reflagging matters because flag hopping depends on having another registry willing to take the vessel. Where that option is unavailable, a ship cannot respond to sanctions by changing flag.
+These findings concern AIS identity records and their classification. They should not be read as a count of legally completed flag transfers.
 
 ## Worked example
 
-Wisdoms Daughter, IMO 9332834, was designated by the UK on 24 February 2025 while flying Gabon.
+Wisdoms Daughter (IMO 9332834) was designated by the UK on 24 February 2025 while its recorded flag was Gabon.
 
-It appeared under Panama 18 days later, then Djibouti, Palau, Gambia, Sierra Leone and Equatorial Guinea in turn. As of August 2026, it transmits as Spessartin under a Russian flag. That is seven flag changes in eighteen months. It was also renamed twice during the same period, first to Sooraj and then to Mystery.
+Eighteen days later, its identity appeared under Panama. Subsequent records associated the vessel with Djibouti, Palau, Gambia, Sierra Leone and Equatorial Guinea. Over the same period, the vessel was also recorded under different names, including Sooraj and Mystery.
 
-The vessel had already stopped being registry-confirmed before designation. Every identity record from January 2023 onwards is self-reported, including two earlier flags under Saint Kitts and Nevis and Mongolia. Its IMO number never changed, so the vessel can be followed through every name and flag in the sequence, and the designation continues to attach to it.
+The IMO number provides the link across these records, allowing the vessel's reported identity to be followed despite changes in its name and flag. The sequence illustrates how quickly a vessel's AIS-reported identity can change after designation, and why tracking vessels by name or flag alone can produce an incomplete history.
+
+These records show changes in reported identity. They do not, by themselves, establish when or whether the vessel's legal registration changed.
 
 ## Running it
 
-Requires Python 3 and a Global Fishing Watch API token.
+The comparison script analyses the previously retrieved Global Fishing Watch identity records for both dataset versions.
+
+From the project root, run:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install requests python-dotenv
-echo "GFW_TOKEN=your_token_here" > .env
+python3 compare_gfw_versions.py
 ```
 
-Download the UK Sanctions List CSV from gov.uk and save it as uk_sanctions.csv in the project root.
+The script reads the raw JSON responses from `gfw_refresh/raw_json/` and `gfw_refresh_v5/raw_json/`, applies the classification rules independently to each dataset version and generates the vessel-level analysis and comparison files in `comparison_v4_v5/`.
 
-Then run:
-
-```bash
-python3 query_vessels.py
-python3 save_results.py
-python3 split_no_change.py
-```
-
-query_vessels.py queries GFW for each sanctioned vessel. It makes one API call per vessel with a half-second pause and takes roughly six minutes.
+The raw responses must be available in their respective directories before running the comparison.
 
 ## Files
 
-| File | Purpose |
+| File or directory | Purpose |
 |---|---|
-| `query_vessels.py` | Pulls sanctioned vessels and queries GFW for each |
-| `save_results.py` | Calculates days to the first flag change and writes flag_hops.csv |
-| `split_no_change.py` | Separates vessels that kept their flag from those that went silent |
-| `parse_vessel.py` | Prints the full identity history for a single IMO |
-| `explore_sdn.py` | Inspects the UK Sanctions List structure and extracts vessel entries |
-| `METHODOLOGY.md` | Documents the decisions, definitions and limits behind the analysis |
-| `results.json` | Raw GFW responses for all 663 vessels |
-| `flag_hops.csv` | The 404 observed flag changes |
+| `uk_sanctions.csv` | Source UK Sanctions List data |
+| `gfw_refresh/` | GFW v4.0 data retrieval files and raw API responses |
+| `gfw_refresh_v5/` | GFW v5.0 data retrieval files and raw API responses |
+| `comparison_v4_v5/` | Clean sanctions lookup, version-specific analysis results and comparison outputs |
+| `compare_gfw_versions.py` | Applies the classification rules to both GFW versions and compares the results |
+| `METHODOLOGY.md` | Explains the research design, data preparation, classification rules and limitations |
+| `README.md` | Project overview, findings and instructions |
 
-## Limits
+The principal analysis outputs are:
 
-The data shows what vessels did after designation, not why they did it.
+| Output | Purpose |
+|---|---|
+| `comparison_v4_v5/sanctions_lookup.csv` | One consolidated sanctions record for each of the 663 IMO numbers |
+| `comparison_v4_v5/analysis_v4.0.csv` | Vessel-level classifications using GFW v4.0 |
+| `comparison_v4_v5/analysis_v5.0.csv` | Vessel-level classifications using GFW v5.0 |
+| `comparison_v4_v5/comparison_v4_v5.csv` | Comparison of classifications and candidate identities across both releases |
 
-A flag change following a sanction is consistent with evasion. It can also follow deregistration by the original flag state, a sale, or a routine registration event that happened to fall in the same period. Establishing intent for an individual vessel would require evidence outside AIS data.
+## Limitations
 
-The dates in this analysis are the dates the changes became visible in GFW data. They are not necessarily the dates on which legal registration took place. The measured interval can therefore be longer than the actual time between the legal change and the designation.
-The dataset covers UK sanctions only. Adding US and EU sanctions would produce a broader sample and could change the results.
+The analysis identifies changes in AIS-reported vessel identity. It does not establish that a vessel legally changed its registration or nationality. A different AIS-reported flag may reflect a genuine registration change, an administrative update, an inaccurate broadcast or an error in the underlying data.
 
-GFW data is derived from AIS and other vessel information. Vessels can stop transmitting or manipulate their AIS broadcasts, and GFW states that its data may contain errors. Individual records therefore need to be treated with caution. The main finding rests on the pattern across the full dataset.
+An overlapping identity record indicates that different vessel identities were reported during the same period. It does not establish why the records overlap or whether the vessel deliberately manipulated its identity. Similarly, a match with GFW registry information provides additional identity evidence but does not, by itself, establish the legal validity of a vessel's registration.
 
-METHODOLOGY.md sets out the methodology and limitations in full.
+The dates used in the analysis are those recorded in GFW's identity histories. They indicate when a particular identity was reported as valid in the dataset, not necessarily when a legal registration took effect. The calculated time between designation and an observed flag change should therefore be interpreted with this distinction in mind.
 
+The comparison is also limited by the scope and quality of the available data. Differences between v4.0 and v5.0 may result from additions or revisions to historical records. They do not necessarily represent new events involving the vessels.
+
+Finally, the sample covers vessels identified through the UK Sanctions List. The findings should not automatically be generalised to vessels sanctioned by other jurisdictions or to the wider global shipping fleet.
+
+The full research design, classification rules and methodological limitations are set out in `METHODOLOGY.md`.
 
 ## Data sources
 
-UK Sanctions List 
-​​https://www.gov.uk/government/publications/the-uk-sanctions-list 
-Published by the Foreign, Commonwealth and Development Office.
+**UK Sanctions List**
 
+https://www.gov.uk/government/publications/the-uk-sanctions-list
 
-Global Fishing Watch
-https://globalfishingwatch.org/our-apis/ 
-Powered by Global Fishing Watch. Dataset: public-global-vessel-identity:v4.0, accessed 2026-08-25. Used for non-commercial research under CC BY-NC 4.0.
+Published by the Foreign, Commonwealth and Development Office. The analysis uses the list dated 28 August 2026.
+
+**Global Fishing Watch**
+
+https://globalfishingwatch.org/our-apis/
+
+The analysis uses two releases of the Global Vessel Identity dataset:
+
+- `public-global-vessel-identity:v4.0`
+- `public-global-vessel-identity:v5.0`
+
+Both datasets were retrieved on 11 November 2026. The same 663 IMO numbers were queried against each release.
+
+GFW data is used under its applicable data terms and licence conditions. This project is an independent research exercise.
